@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
@@ -24,6 +24,10 @@ export default function HomePage() {
   const [submitting, setSubmitting] = useState(false);
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -31,23 +35,75 @@ export default function HomePage() {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (user) {
-      loadPosts();
-    }
-  }, [user]);
-
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async (pageNum = 1) => {
     try {
-      const data = await api.getPosts();
-      console.log("Posts data:", data);
-      setPosts(data);
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const data = await api.getPosts(pageNum, 10);
+      console.log("Posts data:", data, "Page:", pageNum, "Count:", data.length);
+
+      if (pageNum === 1) {
+        setPosts(data);
+      } else {
+        setPosts((prev) => [...prev, ...data]);
+      }
+
+      const hasMorePosts = data.length === 10;
+      console.log("Setting hasMore to:", hasMorePosts);
+      setHasMore(hasMorePosts);
     } catch (error) {
       console.error("Failed to load posts:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadPosts(1);
+    }
+  }, [user, loadPosts]);
+
+  useEffect(() => {
+    let isLoading = false;
+
+    const handleScroll = () => {
+      if (isLoading) return;
+
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight;
+
+      // Check if user has scrolled near the bottom (within 200px)
+      if (scrollTop + clientHeight >= scrollHeight - 200) {
+        console.log("Near bottom - scrollTop:", scrollTop, "clientHeight:", clientHeight, "scrollHeight:", scrollHeight);
+        console.log("hasMore:", hasMore, "loadingMore:", loadingMore, "page:", page);
+
+        if (hasMore && !loadingMore && !isLoading) {
+          console.log("Loading more posts, page:", page + 1);
+          isLoading = true;
+          const nextPage = page + 1;
+          setPage(nextPage);
+          loadPosts(nextPage).finally(() => {
+            isLoading = false;
+          });
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    console.log("Scroll listener attached");
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      isLoading = false;
+    };
+  }, [hasMore, loadingMore, loadPosts, page]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,7 +128,8 @@ export default function HomePage() {
       setPostTitle("");
       setSelectedImage(null);
       setImagePreview(null);
-      await loadPosts();
+      setPage(1);
+      await loadPosts(1);
     } catch (error) {
       console.error("Failed to create post:", error);
     } finally {
@@ -83,7 +140,8 @@ export default function HomePage() {
   const handleLike = async (postId: number) => {
     try {
       await api.toggleReaction(postId);
-      await loadPosts();
+      setPage(1);
+      await loadPosts(1);
     } catch (error) {
       console.error("Failed to toggle like:", error);
     }
@@ -96,7 +154,8 @@ export default function HomePage() {
     try {
       await api.createComment(postId, content);
       setCommentInputs({ ...commentInputs, [postId]: "" });
-      await loadPosts();
+      setPage(1);
+      await loadPosts(1);
     } catch (error) {
       console.error("Failed to add comment:", error);
     }
@@ -349,6 +408,17 @@ export default function HomePage() {
               </CardContent>
             </Card>
           ))}
+
+          {/* Infinite scroll observer target */}
+          {hasMore && (
+            <div ref={observerTarget} className="h-20 flex items-center justify-center">
+              {loadingMore ? (
+                <p className="text-gray-500">Loading more posts...</p>
+              ) : (
+                <p className="text-gray-400 text-sm">Scroll for more</p>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>
