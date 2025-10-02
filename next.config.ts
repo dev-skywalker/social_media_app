@@ -7,9 +7,15 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "social.pyaesone.com", // replace with your production domain
+        hostname: "social.pyaesone.com",
         port: "",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "social-api.pyaesone.com",
+        port: "",
+        pathname: "/uploads/**",
       },
     ],
   },
