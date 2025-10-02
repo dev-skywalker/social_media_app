@@ -1,0 +1,197 @@
+Social Media Platform - Frontend Task
+Overview
+Build a responsive social media platform based on the provided UI designs. Use any modern frontend framework.
+Requirements
+Pages to Build
+1. **Login/Register Page** - Authentication with form validation
+2. **Home Feed** - Post creation, feed display, like/comment functionality 3. **Profile Page** - User profile with posts and statistics
+Core Features
+- User authentication (login/register)
+- Create and display posts with timestamps - Like and comment on posts
+- User profile with post count and statistics - Responsive design (mobile-first)
+Technical Stack
+- Any modern frontend framework
+- CSS/styling approach of choice
+- Local storage for data persistence - Mobile-responsive design
+Key Functionality Authentication:
+- Login/register forms with validation
+- Demo credentials: `demo@example.com` / `demo123`
+Posts:
+- Text posts with character limit (500)
+- Display with user info and timestamps - Like/unlike functionality
+- Comment system
+Profile:
+- Display user stats (posts, likes, comments) - Show user's posts only
+- Edit/delete own posts
+Deliverables
+- Complete working application
+- Responsive design matching provided mockups - README with setup instructions
+- Live demo link (optional)
+Evaluation Focus
+- Code quality and organization
+- UI/UX implementation accuracy
+- Responsive design
+- Core functionality working correctly
+
+I already have api 
+base url - https://social-api.pyaesone.com/
+
+Endpoint: POST /api/register
+Request Fields:
+name → required, string, max length 255
+email → required, valid email, unique
+password → required, min length 8, 
+confirmation required
+Response:
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoicHlhZXNvbmVAZ21haWwuY29tIiwiaWF0IjoxNzU5MzI3NjkxLCJleHAiOjE3NTk1ODY4OTF9.D99yanLVFFptlqF46j27ORwt8ojytha_0iMikik934s",
+    "user": {
+        "id": 3,
+        "name": "Pyae Sone",
+        "email": "pyaesone@gmail.com",
+        "createdAt": "2025-10-01T14:08:11.044Z"
+    }
+}
+
+Endpoint: POST /api/login
+Request Fields:
+email → required, valid email, unique
+password → required, min length 8, 
+Response:
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoicHlhZXNvbmVAZ21haWwuY29tIiwiaWF0IjoxNzU5MzI3NzcyLCJleHAiOjE3NTk1ODY5NzJ9.r37kZtA7y8-JIgDDAb8jatY-uv6_ecePJa85bnuvRZc",
+    "user": {
+        "id": 3,
+        "name": "Pyae Sone",
+        "email": "pyaesone@gmail.com",
+        "createdAt": "2025-10-01T14:08:11.044Z"
+    }
+}
+
+Endpoint: POST /api/logout
+Required Bearer Token
+Response:
+{
+    "message": "Logged out successfully"
+}
+
+Endpoint: GET /api/profile
+Required Bearer Token
+Request Fields:
+Response:
+{
+    "id": 3,
+    "name": "Pyae Sone",
+    "email": "pyaesone@gmail.com",
+    "created_at": "2025-10-01T14:08:11.044Z",
+    "post_count": 0,
+    "comment_count": 0,
+    "reaction_count": 0
+}
+
+Newsfeed (Home)
+Endpoint: GET /api/posts
+Required Bearer Token
+Query Parameters:page → optional, number (default: 1), limit → optional, number (default: 10)
+Request Fields:
+Response:
+[
+    {
+        "id": 2,
+        "title": "A Post from Bob",
+        "content": "Hello world! This is Bob writing.",
+        "image": null,
+        "createdAt": "2025-10-01T12:33:34.572Z",
+        "userId": 2,
+        "author": {
+            "id": 2,
+            "name": "Bob"
+        },
+        "_count": {
+            "comments": 0,
+            "reactions": 0
+        },
+        "reaction_count": 0,
+        "comment_count": 0
+    }
+]
+
+
+
+Endpoint: GET /api/posts/my-posts
+Required Bearer Token
+Query Parameters:page → optional, number (default: 1), limit → optional, number (default: 10)
+Request Fields:
+Response:
+[
+    {
+        "id": 3,
+        "title": "Title",
+        "content": "Des",
+        "image": null,
+        "createdAt": "2025-10-01T14:28:39.412Z",
+        "userId": 3
+    }
+]
+
+Endpoint: POST /api/posts
+Required: Bearer Token, Content-Type: multipart/form-data
+Request Fields:
+title → required, string
+content → required, string
+image → optional, file
+Response:
+{
+    "id": 15,
+    "title": "My First Post from the API",
+    "content": "This is the content of the post created via the API documentation example.",
+    "image": "/uploads/1759328532000-sample-image.jpg",
+    "createdAt": "2025-10-01T14:22:12.123Z",
+    "userId": 3
+}
+
+Edit Post
+Endpoint: PUT /api/posts/{postId}
+Required: Bearer Token, Content-Type: multipart/form-data
+Request Fields:
+title → optional, string
+content → optional, string
+image → optional, file
+Response:
+{
+    "id": 15,
+    "title": "My Updated Post Title",
+    "content": "The content has been updated.",
+    "image": "/uploads/1759328532000-sample-image.jpg",
+    "createdAt": "2025-10-01T14:22:12.123Z",
+    "userId": 3
+}
+
+Comment on a Post
+Endpoint: POST /api/posts/{postId}/comments
+Required: Bearer Token
+Request Fields:
+content → required, string
+Response:
+{
+    "id": 25,
+    "content": "This is a great comment on the post!",
+    "createdAt": "2025-10-01T14:25:30.456Z",
+    "userId": 3,
+    "postId": 12
+}
+
+Reaction (Like/Unlike)
+Endpoint: POST /api/posts/{postId}/reaction
+Required: Bearer Token
+Request Fields:
+type → required, string (e.g., "like")
+Response (on first click):
+{
+    "status": "liked"
+}
+Response (on second click):
+
+{
+    "status": "unliked"
+}
