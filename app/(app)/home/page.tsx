@@ -241,7 +241,7 @@ export default function HomePage() {
 
                 {post.image && (
                   <img
-                    src={`https://social-api.pyaesone.com${post.image}`}
+                    src={post.image}
                     alt="Post"
                     className="rounded-xl w-full mb-3 object-cover max-h-96"
                   />

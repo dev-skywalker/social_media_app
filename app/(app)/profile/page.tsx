@@ -76,7 +76,7 @@ export default function ProfilePage() {
     setEditTitle(post.title || "");
     setEditContent(post.content);
     setEditImage(null);
-    setEditImagePreview(post.image ? `https://social-api.pyaesone.com${post.image}` : null);
+    setEditImagePreview(post.image ? post.image : null);
   };
 
   const handleCancelEdit = () => {
@@ -339,7 +339,7 @@ export default function ProfilePage() {
 
                         {post.image && (
                           <img
-                            src={`https://social-api.pyaesone.com${post.image}`}
+                            src={post.image}
                             alt="Post"
                             className="rounded-xl w-full mb-3 object-cover max-h-96"
                           />
